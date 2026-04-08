@@ -1,9 +1,10 @@
 from fastapi import APIRouter, Query, HTTPException
 from app.services.vbb_service import vbb_service
+from app.models.vbb_models import JourneysResponse
 
 router = APIRouter()
 
-@router.get("/")
+@router.get("/", response_model=JourneysResponse)
 async def get_journeys(
     from_id: str = Query(..., description="Origin stop ID"),
     to_id: str = Query(..., description="Destination stop ID"),

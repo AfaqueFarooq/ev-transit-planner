@@ -1,9 +1,10 @@
 from fastapi import APIRouter, Query, HTTPException
 from app.services.vbb_service import vbb_service
+from app.models.vbb_models import RadarResponse
 
 router = APIRouter()
 
-@router.get("/")
+@router.get("/", response_model=RadarResponse)
 async def get_radar(
     north: float = Query(..., description="North boundary of bounding box"),
     south: float = Query(..., description="South boundary of bounding box"),

@@ -1,9 +1,11 @@
 from fastapi import APIRouter, Query, HTTPException
+from typing import List
 from app.services.vbb_service import vbb_service
+from app.models.vbb_models import Stop, NearbyStop
 
 router = APIRouter()
 
-@router.get("/search")
+@router.get("/search", response_model=List[Stop])
 async def search_locations(
     query: str = Query(..., description="Stop name to search for"),
     results: int = Query(5, description="Number of results to return")
@@ -13,8 +15,9 @@ async def search_locations(
         return data
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
-    
-@router.get("/nearby")
+
+
+@router.get("/nearby", response_model=List[NearbyStop])
 async def get_nearby(
     latitude: float = Query(..., description="Latitude of the location"),
     longitude: float = Query(..., description="Longitude of the location"),

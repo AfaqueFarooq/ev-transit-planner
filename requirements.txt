@@ -5,3 +5,5 @@ email-validator
 uvicorn
 pydantic
 python-dotenv
+pytest
+pytest-asyncio
