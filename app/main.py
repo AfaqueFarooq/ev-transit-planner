@@ -1,6 +1,10 @@
 from fastapi import FastAPI
+from app.api.routes.chargetrip import chargetrip
+from app.api.routes.vbb import departures, journeys, locations, radar
 from app.core.config import APP_NAME, DEBUG
-from app.api.routes import locations, departures, journeys, radar, reachable , chargetrip
+from app.api.routes.vbb import reachable
+from app.api.routes.planner import trip
+
 
 app = FastAPI(
     title=APP_NAME,
@@ -10,15 +14,16 @@ app = FastAPI(
 )
 
 # VBB routes
-app.include_router(locations.router, prefix="/api/locations", tags=["Locations"])
-app.include_router(departures.router, prefix="/api/departures", tags=["Departures"])
-app.include_router(journeys.router, prefix="/api/journeys", tags=["Journeys"])
-app.include_router(radar.router, prefix="/api/radar", tags=["Radar"])
-app.include_router(reachable.router, prefix="/api/reachable", tags=["Reachable"])
+app.include_router(locations.router, prefix="/api/v1/locations", tags=["Locations"])
+app.include_router(departures.router, prefix="/api/v1/departures", tags=["Departures"])
+app.include_router(journeys.router, prefix="/api/v1/journeys", tags=["Journeys"])
+app.include_router(radar.router, prefix="/api/v1/radar", tags=["Radar"])
+app.include_router(reachable.router, prefix="/api/v1/reachable", tags=["Reachable"])
 
 # ChargeTrip routes
-app.include_router(chargetrip.router, prefix="/api/chargetrip", tags=["ChargeTrip"])
+app.include_router(chargetrip.router, prefix="/api/v1/chargetrip", tags=["ChargeTrip"])
 
+app.include_router(trip.router, prefix="/api/v1/planner", tags=["Trip Planner"])
 
 @app.get("/", tags=["Health"])
 def root():
