@@ -4,6 +4,9 @@ from app.api.routes.vbb import departures, journeys, locations, radar
 from app.core.config import APP_NAME, DEBUG
 from app.api.routes.vbb import reachable
 from app.api.routes.planner import trip
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
+import os
 
 
 app = FastAPI(
@@ -25,6 +28,8 @@ app.include_router(chargetrip.router, prefix="/api/v1/chargetrip", tags=["Charge
 
 app.include_router(trip.router, prefix="/api/v1/planner", tags=["Trip Planner"])
 
+app.mount("/static", StaticFiles(directory="app/static"), name="static")
+
 @app.get("/", tags=["Health"])
 def root():
     return {
@@ -32,3 +37,7 @@ def root():
         "status": "running",
         "version": "1.0.0"
     }
+
+@app.get("/ui")
+def ui():
+    return FileResponse("app/static/index.html")

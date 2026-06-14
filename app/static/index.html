@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EV Transit Planner</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, sans-serif; background: #f5f5f5; color: #333; }
+        
+        header { background: #1a1a2e; color: white; padding: 20px 40px; }
+        header h1 { font-size: 24px; font-weight: 600; }
+        header p { font-size: 14px; color: #aaa; margin-top: 4px; }
+        
+        .container { max-width: 900px; margin: 40px auto; padding: 0 20px; }
+        
+        .card { background: white; border-radius: 12px; padding: 30px; margin-bottom: 24px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+        
+        .card h2 { font-size: 18px; font-weight: 600; margin-bottom: 20px; color: #1a1a2e; }
+        
+        .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+        
+        .form-group { display: flex; flex-direction: column; gap: 6px; }
+        .form-group.full { grid-column: 1 / -1; }
+        
+        label { font-size: 13px; font-weight: 500; color: #666; }
+        
+        input, select { padding: 10px 14px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px; outline: none; transition: border 0.2s; }
+        input:focus, select:focus { border-color: #1a1a2e; }
+        
+        button { background: #1a1a2e; color: white; border: none; padding: 14px 28px; border-radius: 8px; font-size: 15px; font-weight: 600; cursor: pointer; width: 100%; margin-top: 8px; transition: background 0.2s; }
+        button:hover { background: #16213e; }
+        button:disabled { background: #999; cursor: not-allowed; }
+        
+        .loading { text-align: center; padding: 40px; color: #666; display: none; }
+        .loading .spinner { width: 40px; height: 40px; border: 3px solid #ddd; border-top-color: #1a1a2e; border-radius: 50%; animation: spin 0.8s linear infinite; margin: 0 auto 16px; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        
+        .result { display: none; }
+        
+        .summary-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 24px; }
+        
+        .stat { background: #f8f9fa; border-radius: 10px; padding: 16px; text-align: center; }
+        .stat .value { font-size: 28px; font-weight: 700; color: #1a1a2e; }
+        .stat .label { font-size: 12px; color: #888; margin-top: 4px; }
+        
+        .timeline { display: flex; flex-direction: column; gap: 0; }
+        
+        .step { display: flex; gap: 16px; align-items: flex-start; }
+        
+        .step-icon { width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 16px; flex-shrink: 0; margin-top: 2px; }
+        
+        .step-line { display: flex; flex-direction: column; align-items: center; }
+        .step-line .icon { width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 16px; flex-shrink: 0; }
+        .step-line .line { width: 2px; height: 30px; background: #e0e0e0; margin: 4px auto; }
+        
+        .step-content { padding-bottom: 24px; flex: 1; }
+        .step-content h3 { font-size: 15px; font-weight: 600; }
+        .step-content p { font-size: 13px; color: #666; margin-top: 2px; }
+        .step-content .time { font-size: 12px; color: #999; margin-top: 4px; }
+        
+        .ev-stop { background: #fff3e0; }
+        .walk-stop { background: #e8f5e9; }
+        .bus-stop { background: #e3f2fd; }
+        .train-stop { background: #f3e5f5; }
+        .sbahn-stop { background: #e8eaf6; }
+        .destination { background: #e8f5e9; }
+        
+        .charging-info { background: #fff8e1; border: 1px solid #ffe082; border-radius: 10px; padding: 16px; margin-bottom: 24px; }
+        .charging-info h3 { font-size: 14px; font-weight: 600; color: #f57c00; margin-bottom: 8px; }
+        .charging-info p { font-size: 13px; color: #666; }
+
+        .error { background: #ffebee; border: 1px solid #ffcdd2; border-radius: 10px; padding: 16px; color: #c62828; display: none; }
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>⚡ EV Transit Planner</h1>
+    <p>Plan your electric vehicle journey with seamless public transit integration</p>
+</header>
+
+<div class="container">
+
+    <!-- Input Form -->
+    <div class="card">
+        <h2>Plan your trip</h2>
+        <div class="form-grid">
+            <div class="form-group full">
+                <label>Vehicle</label>
+                <select id="vehicle_id">
+                    <option value="646ca73f3f6beb1fcbdbdf70">Abarth 500e Convertible (192km range)</option>
+                    <option value="5f043d88bc262f1627fc032b">Audi e-tron Sportback 50 quattro</option>
+                    <option value="650afb3adde1e819a5d83f8a">Cadillac LYRIQ AWD (394km range)</option>
+                    <option value="63dcf548a5d8dd1fd460da13">Ford F-150 Lightning Lariat (428km range)</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>Origin latitude</label>
+                <input type="number" id="origin_lat" value="48.8566" step="0.0001" placeholder="e.g. 48.8566"/>
+            </div>
+            <div class="form-group">
+                <label>Origin longitude</label>
+                <input type="number" id="origin_lng" value="2.3522" step="0.0001" placeholder="e.g. 2.3522"/>
+            </div>
+
+            <div class="form-group">
+                <label>Destination latitude</label>
+                <input type="number" id="destination_lat" value="52.5200" step="0.0001" placeholder="e.g. 52.5200"/>
+            </div>
+            <div class="form-group">
+                <label>Destination longitude</label>
+                <input type="number" id="destination_lng" value="13.4050" step="0.0001" placeholder="e.g. 13.4050"/>
+            </div>
+
+            <div class="form-group full">
+                <label>Battery at start: <span id="soc_label">80%</span></label>
+                <input type="range" id="state_of_charge" min="10" max="100" value="80" oninput="document.getElementById('soc_label').textContent = this.value + '%'"/>
+            </div>
+        </div>
+        <button onclick="planTrip()" id="btn">Plan Trip →</button>
+    </div>
+
+    <!-- Error -->
+    <div class="error" id="error"></div>
+
+    <!-- Loading -->
+    <div class="loading" id="loading">
+        <div class="spinner"></div>
+        <p>Planning your trip... ChargeTrip is calculating the optimal EV route</p>
+        <p style="font-size:12px; color:#aaa; margin-top:8px">This may take up to 20 seconds</p>
+    </div>
+
+    <!-- Result -->
+    <div class="result" id="result">
+
+        <!-- EV Route Summary -->
+        <div class="card">
+            <h2>🚗 EV Route Summary</h2>
+            <div class="summary-grid">
+                <div class="stat">
+                    <div class="value" id="stat_distance">—</div>
+                    <div class="label">Total distance (km)</div>
+                </div>
+                <div class="stat">
+                    <div class="value" id="stat_charges">—</div>
+                    <div class="label">Charging stops</div>
+                </div>
+                <div class="stat">
+                    <div class="value" id="stat_driving">—</div>
+                    <div class="label">Driving time (hrs)</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Charging Stop -->
+        <div class="charging-info" id="charging_info">
+            <h3>⚡ Last charging stop</h3>
+            <p id="charging_name">—</p>
+            <p id="charging_coords" style="font-size:12px; color:#999; margin-top:4px;">—</p>
+        </div>
+
+        <!-- Transit Journey -->
+        <div class="card">
+            <h2>🚆 Transit to Berlin Hauptbahnhof</h2>
+            <p style="font-size:13px; color:#666; margin-bottom:20px;">Nearest stop: <span id="nearest_stop">—</span> (<span id="nearest_distance">—</span>m walk)</p>
+            <div class="timeline" id="timeline"></div>
+        </div>
+
+    </div>
+</div>
+
+<script>
+async function planTrip() {
+    const btn = document.getElementById('btn')
+    const loading = document.getElementById('loading')
+    const result = document.getElementById('result')
+    const error = document.getElementById('error')
+
+    // Reset
+    result.style.display = 'none'
+    error.style.display = 'none'
+    loading.style.display = 'block'
+    btn.disabled = true
+    btn.textContent = 'Planning...'
+
+    const params = new URLSearchParams({
+        vehicle_id: document.getElementById('vehicle_id').value,
+        origin_lat: document.getElementById('origin_lat').value,
+        origin_lng: document.getElementById('origin_lng').value,
+        destination_lat: document.getElementById('destination_lat').value,
+        destination_lng: document.getElementById('destination_lng').value,
+        state_of_charge: document.getElementById('state_of_charge').value
+    })
+
+    try {
+        const response = await fetch(`/api/v1/planner/trip?${params}`)
+        const data = await response.json()
+
+        if (!response.ok) {
+            throw new Error(data.detail || 'Something went wrong')
+        }
+
+        // Fill EV route summary
+        document.getElementById('stat_distance').textContent = Math.round(data.ev_route.total_distance_meters / 1000)
+        document.getElementById('stat_charges').textContent = data.ev_route.charges
+        document.getElementById('stat_driving').textContent = (data.ev_route.durations.driving / 3600).toFixed(1)
+
+        // Fill charging stop
+        document.getElementById('charging_name').textContent = data.last_charging_stop.name
+        document.getElementById('charging_coords').textContent = `lat: ${data.last_charging_stop.coordinates.latitude.toFixed(5)}, lng: ${data.last_charging_stop.coordinates.longitude.toFixed(5)}`
+
+        // Fill nearest stop
+        document.getElementById('nearest_stop').textContent = data.nearest_transit_stop.name
+        document.getElementById('nearest_distance').textContent = data.nearest_transit_stop.distance_meters
+
+        // Build timeline
+        buildTimeline(data.transit_journeys)
+
+        loading.style.display = 'none'
+        result.style.display = 'block'
+
+    } catch (err) {
+        loading.style.display = 'none'
+        error.textContent = `Error: ${err.message}`
+        error.style.display = 'block'
+    } finally {
+        btn.disabled = false
+        btn.textContent = 'Plan Trip →'
+    }
+}
+
+function buildTimeline(journeys) {
+    const timeline = document.getElementById('timeline')
+    timeline.innerHTML = ''
+
+    if (!journeys || journeys.length === 0) {
+        timeline.innerHTML = '<p style="color:#666">No journeys found</p>'
+        return
+    }
+
+    const journey = journeys[0]
+    const legs = journey.legs
+
+    legs.forEach((leg, index) => {
+        const isLast = index === legs.length - 1
+        const isWalking = leg.walking
+
+        const icon = isWalking ? '🚶' :
+            leg.line?.product === 'bus' ? '🚌' :
+            leg.line?.product === 'suburban' ? '🚇' :
+            leg.line?.product === 'regional' ? '🚆' : '🚍'
+
+        const bgClass = isWalking ? 'walk-stop' :
+            leg.line?.product === 'bus' ? 'bus-stop' :
+            leg.line?.product === 'suburban' ? 'sbahn-stop' :
+            leg.line?.product === 'regional' ? 'train-stop' : 'bus-stop'
+
+        const title = isWalking
+            ? `Walk ${leg.distance ? leg.distance + 'm' : ''}`
+            : `${leg.line?.name || ''} → ${leg.destination?.name || ''}`
+
+        const subtitle = isWalking
+            ? `to ${leg.destination?.name || ''}`
+            : `from ${leg.origin?.name || ''}`
+
+        const time = leg.departure
+            ? `${formatTime(leg.departure)} → ${formatTime(leg.arrival)}`
+            : ''
+
+        const delay = leg.departureDelay && leg.departureDelay > 0
+            ? ` <span style="color:#e53935">+${Math.round(leg.departureDelay/60)}min delay</span>`
+            : ''
+
+        timeline.innerHTML += `
+            <div class="step">
+                <div class="step-line">
+                    <div class="step-icon ${bgClass}">${icon}</div>
+                    ${!isLast ? '<div class="line"></div>' : ''}
+                </div>
+                <div class="step-content">
+                    <h3>${title}</h3>
+                    <p>${subtitle}</p>
+                    <div class="time">${time}${delay}</div>
+                </div>
+            </div>
+        `
+    })
+}
+
+function formatTime(isoString) {
+    if (!isoString) return ''
+    const date = new Date(isoString)
+    return date.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })
+}
+</script>
+
+</body>
+</html>
