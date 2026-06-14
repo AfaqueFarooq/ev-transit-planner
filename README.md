@@ -74,6 +74,11 @@ http://localhost:8000/docs
 | GET | `/api/journeys` | Plan a journey from A to B |
 | GET | `/api/radar` | Live vehicles in a geographic area |
 | GET | `/api/reachable` | Stops reachable within X minutes |
+| GET | `/api/v1/chargetrip/vehicles` | List available EV vehicles |
+| GET | `/api/v1/chargetrip/stations` | Find charging stations near coordinates |
+| POST | `/api/v1/chargetrip/routes` | Create an EV route calculation |
+| GET | `/api/v1/chargetrip/routes/{id}` | Fetch a completed route result |
+| GET | `/api/v1/planner/trip` | End-to-end multimodal trip planner |
 
 ---
 
@@ -85,8 +90,25 @@ http://localhost:8000/docs
   - Real-time delays, cancellations, and disruptions
   - Rate limit: 100 requests/minute
 
-- **ChargeTrip GraphQL API** *(Phase 2)*
+- **ChargeTrip GraphQL API** — `https://api.chargetrip.io/graphql`
   - EV routing with charging stops
   - Vehicle consumption models
   - Charging station locations
+  - Requires `x-client-id` and `x-app-id` headers
+
+## System Architecture
+
+The system follows a four-layer architecture connecting the FastAPI backend to both external APIs and (planned) database layer.
+
+![Architecture Diagram](docs/system_architecture.png)
+
+The critical integration point is the coordinate transformation: ChargeTrip returns `[longitude, latitude]` while VBB expects `latitude, longitude` as separate parameters.
+
+## Frontend
+
+A simple HTML/CSS/JS frontend is served at `/ui` for testing the trip planner interactively without Swagger.
+
+```
+http://localhost:8000/ui
+```
 
